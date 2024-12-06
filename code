@@ -1,1 +1,102 @@
-Example
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+file_path = 'heart_statlog_cleveland_hungary_final.csv'
+dataset = pd.read_csv(file_path)
+
+target_counts = dataset['target'].value_counts()
+
+plt.figure(figsize=(8, 6))
+target_counts.plot(kind='bar', color=['skyblue', 'orange'], alpha=0.8)
+plt.title('Distribución de la Clase', fontsize=14)
+plt.xlabel('Clases (0 = No Enfermedad, 1 = Enfermedad)', fontsize=12)
+plt.ylabel('Número de Casos', fontsize=12)
+plt.xticks(rotation=0)
+plt.grid(axis='y', linestyle='--', alpha=0.6)
+plt.tight_layout()
+plt.show()
+
+dataset_limpio = dataset[dataset['resting bp s'] != 0]
+summary = dataset_limpio.describe(include='all').round(2)
+summary
+
+median_target_0 = dataset_limpio[(dataset_limpio['cholesterol'] != 0) & (dataset_limpio['target'] == 0)]['cholesterol'].median()
+median_target_1 = dataset_limpio[(dataset_limpio['cholesterol'] != 0) & (dataset_limpio['target'] == 1)]['cholesterol'].median()
+
+dataset_limpio.loc[
+    (dataset_limpio['cholesterol'] == 0) & (dataset_limpio['target'] == 0), 'cholesterol'
+] = median_target_0
+
+dataset_limpio.loc[
+    (dataset_limpio['cholesterol'] == 0) & (dataset_limpio['target'] == 1), 'cholesterol'
+] = median_target_1
+
+summary = dataset_limpio.describe(include='all').round(2)
+summary
+
+plt.figure(figsize=(12, 12))
+
+# Target 1
+plt.subplot(2, 1, 1)
+plt.hist(dataset_limpio[dataset_limpio['target'] == 1]['age'], bins=30, color='blue', alpha=0.7, edgecolor='k')
+plt.title('Distribución según edad - Target 1 (Con enfermedad cardiaca)')
+plt.xlabel('Edad')
+plt.ylabel('Frecuencia')
+
+# Target 0
+plt.subplot(2, 1, 2)
+plt.hist(dataset_limpio[dataset_limpio['target'] == 0]['age'], bins=30, color='orange', alpha=0.7, edgecolor='k')
+plt.title('Distribución según edad - Target 0 (Sin enfermedad cardiaca)')
+plt.xlabel('Edad')
+plt.ylabel('Frecuencia')
+
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(12, 10))
+
+correlation_matrix = dataset_limpio.corr()
+
+
+# Mapa de calor
+
+sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap="coolwarm", cbar=True)
+
+plt.title("Mapa de Calor - Correlaciones del Dataset")
+
+plt.show()
+
+for estimator_name, estimator_object in tipos.items():
+    print(f"Optimizing: {estimator_name}")
+    
+    # Obtener los parámetros correspondientes al modelo
+    param_grid = param_grids.get(estimator_name, {})
+    
+    # Si hay parámetros para optimizar
+    if param_grid:
+        grid_search = GridSearchCV(estimator_object, param_grid, cv=kfold, scoring='accuracy')
+        grid_search.fit(dataset_data, dataset_target)
+        best_estimator = grid_search.best_estimator_
+        print(f"Best Parameters for {estimator_name}: {grid_search.best_params_}")
+    else:
+        best_estimator = estimator_object  # Si no hay parámetros, usar el modelo original
+    
+    # Evaluamos con validación cruzada
+    scoring = {
+        'accuracy': make_scorer(accuracy_score),
+        'precision': make_scorer(precision_score, zero_division=0),
+        'recall': make_scorer(recall_score, zero_division=0),
+        'f1': make_scorer(f1_score, zero_division=0)
+    }
+
+    scores = cross_validate(best_estimator, dataset_data, dataset_target, cv=kfold, scoring=scoring)
+    
+    # Mostrar los resultados
+    print(f'{estimator_name:>25}:')
+    print(f'    Accuracy: {scores["test_accuracy"].mean():.2%}; Std Dev: {scores["test_accuracy"].std():.2%}')
+    print(f'    Precision: {scores["test_precision"].mean():.2%}; Std Dev: {scores["test_precision"].std():.2%}')
+    print(f'    Recall: {scores["test_recall"].mean():.2%}; Std Dev: {scores["test_recall"].std():.2%}')
+    print(f'    F1-Score: {scores["test_f1"].mean():.2%}; Std Dev: {scores["test_f1"].std():.2%}')
+    print('-' * 50)
